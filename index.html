@@ -57,6 +57,7 @@
 
 <div id="editor"></div>
 <button id="runBtn">▶️ Запустить код</button>
+<button id="saveBtn" style="margin-top:8px;padding:12px;border:none;border-radius:10px;font-size:16px;background:var(--tg-theme-hint-color,#999);color:#fff;cursor:pointer;">💾 Сохранить код</button>
 <div id="terminal">Готов к запуску...</div>
 
 <script>
@@ -70,7 +71,21 @@ const editor = CodeMirror(document.getElementById("editor"), {
   value: 'print("Привет, Telegram!")\n',
 });
 
+// Если открыт с ?code=... — подставляем сохранённый код
+try {
+  const params = new URLSearchParams(window.location.search);
+  const saved = params.get("code");
+  if (saved) {
+    editor.setValue(decodeURIComponent(escape(atob(saved.replace(/-/g, "+").replace(/_/g, "/")))));
+  }
+} catch (e) { /* игнорируем */ }
+
 const terminal = document.getElementById("terminal");
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  Telegram.WebApp.sendData(editor.getValue());
+  terminal.innerHTML = "💾 Код отправлен боту на сохранение.";
+});
 
 document.getElementById("runBtn").addEventListener("click", async () => {
   const code = editor.getValue();
